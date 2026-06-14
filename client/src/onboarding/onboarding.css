@@ -231,6 +231,7 @@
 
 .onboarding__subtitle {
   font-size: 0.95rem;
+  font-weight: 400;
   color: var(--text-muted);
   margin: 0 0 28px;
   text-align: center;
@@ -397,9 +398,9 @@
 .onboarding__hero--welcome {
   aspect-ratio: auto;
   height: auto;
-  margin: 0 auto 24px;
+  margin: 0 auto 20px;
   width: 100%;
-  max-width: 300px;
+  max-width: 390px;
   border-radius: 0;
   background: var(--bg);
   overflow: visible;
@@ -412,9 +413,20 @@
   object-fit: contain;
 }
 
+.onboarding__title--welcome {
+  font-size: 1.1rem;
+  font-weight: 400;
+  margin-bottom: 6px;
+}
+
 .onboarding__welcome-text {
+  font-size: 0.82rem;
+  font-weight: 400;
+  line-height: 1.45;
   margin-bottom: 0;
-  max-width: 340px;
+  max-width: 300px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .onboarding__hero img {

@@ -162,7 +162,7 @@ export default function OnboardingWizard() {
           <div className="onboarding__hero onboarding__hero--welcome">
             <img src={welcomeImage} alt="Gymlads app" />
           </div>
-          <h1 className="onboarding__title">Ontvang jouw persoonlijke plan</h1>
+          <h1 className="onboarding__title onboarding__title--welcome">Ontvang jouw persoonlijke plan</h1>
           <p className="onboarding__subtitle onboarding__welcome-text">
             Beantwoord een aantal vragen zodat wij je kunnen adviseren en een plan kunnen maken
             dat past bij jouw doelen, levensstijl en trainingsvoorkeuren.
