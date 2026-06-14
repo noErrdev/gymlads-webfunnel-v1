@@ -14,6 +14,7 @@ interface OnboardingLayoutProps {
   planReady?: boolean
   paywall?: boolean
   welcome?: boolean
+  checkoutSuccess?: boolean
 }
 
 export default function OnboardingLayout({
@@ -29,6 +30,7 @@ export default function OnboardingLayout({
   planReady,
   paywall,
   welcome,
+  checkoutSuccess,
 }: OnboardingLayoutProps) {
   const layoutStyle = pageBg
     ? ({ '--bg': pageBg, background: pageBg } as CSSProperties)
@@ -84,7 +86,7 @@ export default function OnboardingLayout({
           planReady ? ' onboarding__content--plan-ready' : ''
         }${paywall ? ' onboarding__content--paywall' : ''}${
           welcome ? ' onboarding__content--welcome' : ''
-        }`}
+        }${checkoutSuccess ? ' onboarding__content--checkout-success' : ''}`}
       >
         {children}
       </main>
