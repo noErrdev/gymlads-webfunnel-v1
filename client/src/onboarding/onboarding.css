@@ -233,7 +233,7 @@
   font-size: 0.95rem;
   font-weight: 400;
   color: var(--text-muted);
-  margin: 0 0 28px;
+  margin: 0 0 34px;
   text-align: center;
   line-height: 1.4;
 }
@@ -286,20 +286,21 @@
 .onboarding__options {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
+  margin-top: 4px;
 }
 
 .onboarding__options--grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 
 .onboarding__options--equipment {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 
 .onboarding__options--equipment .onboarding__option:nth-child(1),
@@ -320,7 +321,7 @@
 
 .onboarding__option {
   width: 100%;
-  padding: 16px 20px;
+  padding: 18px 20px;
   border-radius: 10px;
   border: 2px solid var(--field-border);
   background: transparent;
