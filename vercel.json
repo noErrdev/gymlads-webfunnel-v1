@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm install --prefix client && npm run build --prefix client",
+  "outputDirectory": "client/dist",
+  "installCommand": "npm install && npm install --prefix client && npm install --prefix server",
+  "rewrites": [
+    { "source": "/api/((?!stripe-webhook$).*)", "destination": "/api" }
+  ]
+}

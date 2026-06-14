@@ -1,0 +1,728 @@
+import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { createCheckoutSession } from '../api'
+import { storePendingCheckout } from './CheckoutResult'
+import {
+  HOME_EQUIPMENT,
+  WEEKDAYS,
+  initialOnboardingData,
+  type BooleanFieldKey,
+  type DagelijkseActiviteit,
+  type Doel,
+  type ErvaringKrachttraining,
+  type Geslacht,
+  type GewensteTrainingsduur,
+  type GrootsteUitdaging,
+  type LocatieTraining,
+  type OnboardingData,
+  type SpiergroepFocus,
+} from '../types'
+import OnboardingLayout from './components/OnboardingLayout'
+import NextButton from './components/NextButton'
+import OptionButton from './components/OptionButton'
+import StatRangeField from './components/StatRangeField'
+import GoalsComparisonChart from './components/GoalsComparisonChart'
+import WorkoutsLaurel from './components/WorkoutsLaurel'
+import {
+  autoAssignLocationDays,
+  buildStepList,
+  type StepId,
+  shouldShowProgress,
+  useOnboardingSteps,
+} from './useOnboardingSteps'
+import './onboarding.css'
+import welcomeImage from './assets/01-welcome.png'
+import personalizationImage from './assets/02-personalization.png'
+import consistencyImage from './assets/03-consistency.png'
+import experienceImage from './assets/04-experience.png'
+import scheduleImage from './assets/06-schedule.png'
+import planReadyImage from './assets/07-plan-ready.png'
+import paywallImage from './assets/08-paywall.png'
+
+const DEFAULT_PAGE_BG = '#000000'
+
+/** Matched to each screen image’s sampled edge/background pixels */
+const STEP_PAGE_BG: Partial<Record<StepId, string>> = {
+  welcome: 'rgb(23, 22, 24)',
+}
+
+export default function OnboardingWizard() {
+  const [stepId, setStepId] = useState<StepId>('welcome')
+  const [data, setData] = useState<OnboardingData>(initialOnboardingData)
+  const [checkoutError, setCheckoutError] = useState('')
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [pressedOption, setPressedOption] = useState<string | null>(null)
+
+  const { progress } = useOnboardingSteps(data, stepId)
+
+  useEffect(() => {
+    setPressedOption(null)
+  }, [stepId])
+
+  useEffect(() => {
+    const pageBg = STEP_PAGE_BG[stepId] ?? DEFAULT_PAGE_BG
+    document.documentElement.style.setProperty('--page-bg', pageBg)
+  }, [stepId])
+
+  useEffect(() => {
+    return () => {
+      document.documentElement.style.setProperty('--page-bg', DEFAULT_PAGE_BG)
+    }
+  }, [])
+
+  const isOptionSelected = (
+    option: string | number,
+    value: string | number | null | undefined,
+  ) => value === option || pressedOption === String(option)
+
+  const navigateNext = useCallback(
+    (updates?: Partial<OnboardingData>) => {
+      setData((prev) => {
+        const merged = updates ? { ...prev, ...updates } : prev
+        let nextData = merged
+
+        if (stepId === 'training-days') {
+          nextData = autoAssignLocationDays(merged, 'after-training-days')
+        }
+
+        const steps = buildStepList(nextData)
+        const idx = steps.indexOf(stepId)
+        const nextStep = idx < steps.length - 1 ? steps[idx + 1] : stepId
+        setStepId(nextStep)
+        return nextData
+      })
+    },
+    [stepId],
+  )
+
+  const navigateBack = useCallback(() => {
+    const steps = buildStepList(data)
+    const idx = steps.indexOf(stepId)
+    if (idx > 0) setStepId(steps[idx - 1])
+  }, [stepId, data])
+
+  const selectSingle = useCallback(
+    <K extends keyof OnboardingData>(key: K, value: OnboardingData[K]) => {
+      setPressedOption(String(value))
+      setData((prev) => ({ ...prev, [key]: value }))
+      setTimeout(() => {
+        setPressedOption(null)
+        navigateNext({ [key]: value } as Partial<OnboardingData>)
+      }, 300)
+    },
+    [navigateNext],
+  )
+
+  const toggleMulti = useCallback((key: BooleanFieldKey) => {
+    setData((prev) => ({ ...prev, [key]: !prev[key] }))
+  }, [])
+
+  const hasSelectedTrainingDay = WEEKDAYS.some((d) => data[d.train])
+  const hasSelectedGymDay = WEEKDAYS.some((d) => data[d.gym])
+  const hasSelectedHomeDay = WEEKDAYS.some((d) => data[d.home])
+
+  async function handleCheckout() {
+    setCheckoutError('')
+    setCheckoutLoading(true)
+    try {
+      const result = await createCheckoutSession(data)
+
+      if (result.demo) {
+        storePendingCheckout(data, result.submissionId ?? crypto.randomUUID())
+        window.location.href = '/?checkout=demo'
+        return
+      }
+
+      if (!result.url) {
+        throw new Error('Geen checkout-URL ontvangen')
+      }
+
+      window.location.href = result.url
+    } catch (err) {
+      setCheckoutError(err instanceof Error ? err.message : 'Checkout mislukt')
+      setCheckoutLoading(false)
+    }
+  }
+
+  const showProgress = shouldShowProgress(stepId)
+
+  const layoutProps = {
+    progress: showProgress ? progress : undefined,
+    showBack: stepId !== 'welcome' && stepId !== 'paywall',
+    onBack: navigateBack,
+  }
+
+  switch (stepId) {
+    case 'welcome':
+      return (
+        <OnboardingLayout
+          centered
+          pageBg={STEP_PAGE_BG.welcome}
+          footer={<NextButton label="Start onboarding" onClick={() => setStepId('gender')} />}
+        >
+          <div className="onboarding__hero onboarding__hero--welcome">
+            <img src={welcomeImage} alt="Gymlads app" />
+          </div>
+          <h1 className="onboarding__title">Ontvang jouw persoonlijke plan</h1>
+          <p className="onboarding__subtitle onboarding__welcome-text">
+            Beantwoord een aantal vragen zodat wij je kunnen adviseren en een plan kunnen maken
+            dat past bij jouw doelen, levensstijl en trainingsvoorkeuren.
+          </p>
+        </OnboardingLayout>
+      )
+
+    case 'gender':
+      return (
+        <OnboardingLayout {...layoutProps}>
+          <h1 className="onboarding__title">Wat is jouw geslacht?</h1>
+          <div className="onboarding__options">
+            {(['Man', 'Vrouw', 'Zeg ik liever niet'] as Geslacht[]).map((option) => (
+              <OptionButton
+                key={option}
+                selected={isOptionSelected(option, data.geslacht)}
+                onClick={() => selectSingle('geslacht', option)}
+              >
+                {option}
+              </OptionButton>
+            ))}
+          </div>
+        </OnboardingLayout>
+      )
+
+    case 'stats': {
+      const leeftijd = data.leeftijd ?? 25
+      const lengte = data.lengte ? Number(data.lengte) : 175
+      const gewicht = data.gewicht ? Number(data.gewicht) : 75
+
+      return (
+        <OnboardingLayout
+          {...layoutProps}
+          footer={
+            <NextButton
+              onClick={() =>
+                navigateNext({
+                  leeftijd,
+                  lengte: String(lengte),
+                  gewicht: String(gewicht),
+                })
+              }
+            />
+          }
+        >
+          <h1 className="onboarding__title">Vertel ons over jezelf</h1>
+          <p className="onboarding__subtitle">Dit helpt ons jouw plan te personaliseren</p>
+          <div className="onboarding__stats-fields">
+            <StatRangeField
+              id="leeftijd"
+              label="Leeftijd"
+              min={10}
+              max={100}
+              value={leeftijd}
+              onChange={(value) => setData((prev) => ({ ...prev, leeftijd: value }))}
+            />
+            <StatRangeField
+              id="lengte"
+              label="Lengte"
+              min={100}
+              max={250}
+              unit="cm"
+              value={lengte}
+              onChange={(value) =>
+                setData((prev) => ({ ...prev, lengte: String(value) }))
+              }
+            />
+            <StatRangeField
+              id="gewicht"
+              label="Gewicht"
+              min={30}
+              max={300}
+              unit="kg"
+              value={gewicht}
+              onChange={(value) =>
+                setData((prev) => ({ ...prev, gewicht: String(value) }))
+              }
+            />
+          </div>
+        </OnboardingLayout>
+      )
+    }
+
+    case 'goal':
+      return (
+        <OnboardingLayout {...layoutProps}>
+          <h1 className="onboarding__title">Wat is jouw hoofddoel?</h1>
+          <div className="onboarding__options">
+            {(
+              [
+                'Afvallen',
+                'Spieropbouw',
+                'Kracht opbouwen',
+                'Onderhouden',
+                'Fit voelen',
+              ] as Doel[]
+            ).map((option) => (
+              <OptionButton
+                key={option}
+                selected={isOptionSelected(option, data.doel)}
+                onClick={() => selectSingle('doel', option)}
+              >
+                {option}
+              </OptionButton>
+            ))}
+          </div>
+        </OnboardingLayout>
+      )
+
+    case 'info-personalization':
+      return (
+        <OnboardingLayout
+          {...layoutProps}
+          centered
+          footer={<NextButton onClick={() => navigateNext()} />}
+        >
+          <h1 className="onboarding__title">
+            Op basis van jouw gegevens stemmen we je schema af op jouw lichaam en doelen.
+          </h1>
+          <img
+            className="onboarding__info-stock-image"
+            src={personalizationImage}
+            alt="Persoonlijk trainingsplan"
+          />
+        </OnboardingLayout>
+      )
+
+    case 'info-consistency':
+      return (
+        <OnboardingLayout
+          {...layoutProps}
+          centered
+          footer={<NextButton onClick={() => navigateNext()} />}
+        >
+          <h1 className="onboarding__title">Meer consistentie</h1>
+          <p className="onboarding__body-text">
+            Een persoonlijk schema zorgt voor tot 40% meer consistentie dan een generiek plan.
+          </p>
+          <img
+            className="onboarding__info-stock-image"
+            src={consistencyImage}
+            alt="Voortgang en consistentie"
+          />
+        </OnboardingLayout>
+      )
+
+    case 'challenge':
+      return (
+        <OnboardingLayout {...layoutProps}>
+          <h1 className="onboarding__title">Wat is jouw grootste uitdaging?</h1>
+          <div className="onboarding__options">
+            {(
+              [
+                'Consistentie',
+                'Motivatie',
+                'Niet weten wat te doen',
+                'Geen resultaat',
+                'Weinig tijd',
+              ] as GrootsteUitdaging[]
+            ).map((option) => (
+              <OptionButton
+                key={option}
+                selected={isOptionSelected(option, data.grootste_uitdaging)}
+                onClick={() => selectSingle('grootste_uitdaging', option)}
+              >
+                {option}
+              </OptionButton>
+            ))}
+          </div>
+        </OnboardingLayout>
+      )
+
+    case 'experience':
+      return (
+        <OnboardingLayout {...layoutProps}>
+          <h1 className="onboarding__title">Hoeveel ervaring heb je met krachttraining?</h1>
+          <div className="onboarding__options">
+            {(
+              [
+                'Ik begin net',
+                'Ik train soms (niet consistent)',
+                '6-12 maanden consistent',
+                '1+ jaar consistent',
+              ] as ErvaringKrachttraining[]
+            ).map((option) => (
+              <OptionButton
+                key={option}
+                selected={isOptionSelected(option, data.ervaring_krachttraining)}
+                onClick={() => selectSingle('ervaring_krachttraining', option)}
+              >
+                {option}
+              </OptionButton>
+            ))}
+          </div>
+        </OnboardingLayout>
+      )
+
+    case 'info-experience':
+      return (
+        <OnboardingLayout
+          {...layoutProps}
+          centered
+          footer={<NextButton onClick={() => navigateNext()} />}
+        >
+          <h1 className="onboarding__title">
+            Op basis van jouw ervaring passen we de intensiteit en oefenkeuze aan — zo train je
+            slim, niet alleen hard.
+          </h1>
+          <img
+            className="onboarding__info-stock-image"
+            src={experienceImage}
+            alt="Science-based progress"
+          />
+        </OnboardingLayout>
+      )
+
+    case 'info-goals':
+      return (
+        <OnboardingLayout
+          {...layoutProps}
+          showLogo
+          centered
+          footer={<NextButton onClick={() => navigateNext()} />}
+        >
+          <h1 className="onboarding__title onboarding__title--goals">
+            Mensen die hun doelen vastleggen én voortgang bijhouden behalen dit 76% vaker
+          </h1>
+          <GoalsComparisonChart />
+          <p className="onboarding__subtitle onboarding__goals-subtitle">Behaal jouw doelen.</p>
+        </OnboardingLayout>
+      )
+
+    case 'frequency':
+      return (
+        <OnboardingLayout {...layoutProps}>
+          <h1 className="onboarding__title">Hoe vaak kun je per week trainen?</h1>
+          <p className="onboarding__subtitle">Kies iets wat je vol kunt houden.</p>
+          <div className="onboarding__options">
+            {[2, 3, 4, 5, 6].map((days) => (
+              <OptionButton
+                key={days}
+                selected={isOptionSelected(days, data.sessies_per_week)}
+                onClick={() => selectSingle('sessies_per_week', days)}
+              >
+                {days} dagen
+              </OptionButton>
+            ))}
+          </div>
+        </OnboardingLayout>
+      )
+
+    case 'duration':
+      return (
+        <OnboardingLayout {...layoutProps}>
+          <h1 className="onboarding__title">Hoe lang mag jouw workout duren?</h1>
+          <div className="onboarding__options">
+            {(
+              [
+                '30 minuten',
+                '45 minuten',
+                '60 minuten',
+                '75 minuten',
+                '90 minuten',
+              ] as GewensteTrainingsduur[]
+            ).map((option) => (
+              <OptionButton
+                key={option}
+                selected={isOptionSelected(option, data.gewenste_trainingsduur)}
+                onClick={() => selectSingle('gewenste_trainingsduur', option)}
+              >
+                {option}
+              </OptionButton>
+            ))}
+          </div>
+        </OnboardingLayout>
+      )
+
+    case 'muscle-focus':
+      return (
+        <OnboardingLayout {...layoutProps}>
+          <h1 className="onboarding__title">Wil je meer focus op één spiergroep?</h1>
+          <div className="onboarding__options">
+            {(
+              [
+                'Borst',
+                'Rug',
+                'Schouder',
+                'Biceps',
+                'Triceps',
+                'Billen/Benen',
+                'Ik wil alles gelijk trainen',
+              ] as SpiergroepFocus[]
+            ).map((option) => (
+              <OptionButton
+                key={option}
+                selected={isOptionSelected(option, data.focus_spiergroepen)}
+                onClick={() => selectSingle('focus_spiergroepen', option)}
+              >
+                {option}
+              </OptionButton>
+            ))}
+          </div>
+        </OnboardingLayout>
+      )
+
+    case 'info-schedule':
+      return (
+        <OnboardingLayout
+          {...layoutProps}
+          centered
+          footer={<NextButton onClick={() => navigateNext()} />}
+        >
+          <h1 className="onboarding__title">
+            We stemmen jouw trainingsdagen af op jouw schema — zo train je altijd op het moment
+            dat het voor jou werkt.
+          </h1>
+          <img
+            className="onboarding__info-stock-image"
+            src={scheduleImage}
+            alt="Trainingsschema en workoutduur"
+          />
+        </OnboardingLayout>
+      )
+
+    case 'location':
+      return (
+        <OnboardingLayout {...layoutProps}>
+          <h1 className="onboarding__title">Waar train je meestal?</h1>
+          <div className="onboarding__options">
+            {(['Sportschool', 'Thuis', 'Beide'] as LocatieTraining[]).map((option) => (
+              <OptionButton
+                key={option}
+                selected={isOptionSelected(option, data.locatie_training)}
+                onClick={() => selectSingle('locatie_training', option)}
+              >
+                {option}
+              </OptionButton>
+            ))}
+          </div>
+        </OnboardingLayout>
+      )
+
+    case 'training-days':
+      return (
+        <OnboardingLayout
+          {...layoutProps}
+          footer={
+            <NextButton onClick={() => navigateNext()} disabled={!hasSelectedTrainingDay} />
+          }
+        >
+          <h1 className="onboarding__title">Op welke dagen wil je trainen?</h1>
+          <div className="onboarding__options">
+            {WEEKDAYS.map((day) => (
+              <OptionButton
+                key={day.train}
+                multi
+                selected={data[day.train]}
+                onClick={() => toggleMulti(day.train)}
+              >
+                {day.label}
+              </OptionButton>
+            ))}
+          </div>
+        </OnboardingLayout>
+      )
+
+    case 'gym-days':
+      return (
+        <OnboardingLayout
+          {...layoutProps}
+          footer={<NextButton onClick={() => navigateNext()} disabled={!hasSelectedGymDay} />}
+        >
+          <h1 className="onboarding__title">Op welke dagen wil je in de sportschool trainen?</h1>
+          <div className="onboarding__options">
+            {WEEKDAYS.filter((d) => data[d.train]).map((day) => (
+              <OptionButton
+                key={day.gym}
+                multi
+                selected={data[day.gym]}
+                onClick={() => toggleMulti(day.gym)}
+              >
+                {day.label}
+              </OptionButton>
+            ))}
+          </div>
+        </OnboardingLayout>
+      )
+
+    case 'home-days':
+      return (
+        <OnboardingLayout
+          {...layoutProps}
+          footer={<NextButton onClick={() => navigateNext()} disabled={!hasSelectedHomeDay} />}
+        >
+          <h1 className="onboarding__title">Op welke dagen wil je thuis trainen?</h1>
+          <div className="onboarding__options">
+            {WEEKDAYS.filter((d) => data[d.train]).map((day) => (
+              <OptionButton
+                key={day.home}
+                multi
+                selected={data[day.home]}
+                onClick={() => toggleMulti(day.home)}
+              >
+                {day.label}
+              </OptionButton>
+            ))}
+          </div>
+        </OnboardingLayout>
+      )
+
+    case 'activity':
+      return (
+        <OnboardingLayout {...layoutProps}>
+          <h1 className="onboarding__title">Hoe actief ben je overdag?</h1>
+          <div className="onboarding__options">
+            {(
+              [
+                'Meestal zittend',
+                'Veel staan',
+                'Een combinatie van zitten en staan',
+                'Het verschilt elke dag',
+              ] as DagelijkseActiviteit[]
+            ).map((option) => (
+              <OptionButton
+                key={option}
+                selected={isOptionSelected(option, data.dagelijkse_activiteit)}
+                onClick={() => selectSingle('dagelijkse_activiteit', option)}
+              >
+                {option}
+              </OptionButton>
+            ))}
+          </div>
+        </OnboardingLayout>
+      )
+
+    case 'equipment':
+      return (
+        <OnboardingLayout
+          {...layoutProps}
+          footer={<NextButton onClick={() => navigateNext()} />}
+        >
+          <h1 className="onboarding__title">Welke apparatuur heb je thuis beschikbaar?</h1>
+          <div className="onboarding__options onboarding__options--equipment">
+            {HOME_EQUIPMENT.map((item) => (
+              <OptionButton
+                key={item.key}
+                multi
+                selected={data[item.key]}
+                onClick={() => toggleMulti(item.key)}
+              >
+                {item.label}
+              </OptionButton>
+            ))}
+            <OptionButton
+              onClick={() => {
+                setData((prev) => {
+                  const cleared = { ...prev }
+                  for (const item of HOME_EQUIPMENT) {
+                    cleared[item.key] = false
+                  }
+                  return cleared
+                })
+              }}
+            >
+              Niet van toepassing
+            </OptionButton>
+          </div>
+        </OnboardingLayout>
+      )
+
+    case 'info-feedback':
+      return (
+        <OnboardingLayout
+          {...layoutProps}
+          centered
+          footer={<NextButton onClick={() => navigateNext()} />}
+        >
+          <p className="onboarding__stat-big">95%</p>
+          <p className="onboarding__feedback-text">
+            Van de mensen met regelmatige check-ins en feedbackmomenten
+          </p>
+          <div className="onboarding__highlight-box">Behaalt uiteindelijk zijn doel</div>
+          <p className="onboarding__feedback-text">Zonder is dat maar 35%.</p>
+        </OnboardingLayout>
+      )
+
+    case 'plan-ready':
+      return (
+        <OnboardingLayout
+          {...layoutProps}
+          alignTop
+          planReady
+          footer={<NextButton label="Bekijk mijn plan" onClick={() => navigateNext()} />}
+        >
+          <img
+            className="onboarding__info-stock-image onboarding__info-stock-image--plan"
+            src={planReadyImage}
+            alt="Plan klaar"
+          />
+          <h1 className="onboarding__plan-ready-title">Jouw persoonlijk plan staat klaar</h1>
+          <p className="onboarding__plan-ready-body">
+            Op basis van jouw doelen, voorkeuren en trainingsdagen hebben we een trainingsplan
+            gebouwd dat je helpt de resultaten te behalen die jij wilt — en consistent te blijven.
+          </p>
+        </OnboardingLayout>
+      )
+
+    case 'paywall':
+      return (
+        <OnboardingLayout
+          paywall
+          footer={
+            <>
+              {checkoutError && <div className="onboarding__error">{checkoutError}</div>}
+              <NextButton
+                label="Start nu"
+                onClick={handleCheckout}
+                loading={checkoutLoading}
+              />
+              <div className="onboarding__legal">
+                <a href="#">Aankopen herstellen</a>
+                <a href="#">Voorwaarden</a>
+                <a href="#">Privacy</a>
+              </div>
+            </>
+          }
+        >
+          <div
+            className="onboarding__paywall-panel"
+            style={{ '--paywall-bg': `url(${paywallImage})` } as CSSProperties}
+          >
+            <div className="onboarding__paywall-panel-content">
+              <div className="onboarding__paywall-spacer" aria-hidden="true" />
+              <div className="onboarding__paywall-bottom">
+                <WorkoutsLaurel />
+                <h1 className="onboarding__title onboarding__title--paywall">Ontvang volledige toegang</h1>
+                <p className="onboarding__paywall-desc">
+                  Behaal jouw fitnessdoelen met de juiste begeleiding. Een heel jaar coaching van
+                  Gymlads voor de prijs van één personal training sessie.
+                </p>
+                <ul className="onboarding__benefits onboarding__benefits--paywall">
+                  <li>Persoonlijk schema aangepast op jouw doelen</li>
+                  <li>Wekelijks aangepaste workouts op basis van jouw voortgang</li>
+                  <li>Wekelijkse analyse met concrete, actiegerichte feedback</li>
+                  <li>Log workouts, gewicht en lichaamsmetingen in één klik</li>
+                  <li>Inzicht in jouw trainingsprestaties en voortgang</li>
+                </ul>
+                <div className="onboarding__pricing">
+                  <p className="onboarding__pricing-title">Probeer 7 dagen gratis</p>
+                  <p className="onboarding__pricing-sub">
+                    Daarna €60,00/jaar - jaarlijks opzegbaar
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </OnboardingLayout>
+      )
+
+    default:
+      return null
+  }
+}
