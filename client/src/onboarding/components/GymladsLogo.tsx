@@ -1,4 +1,4 @@
-import logoImage from '../assets/gymlads-logo.jpeg'
+import logoImage from '../assets/gymlads-logo.png'
 
 interface GymladsLogoProps {
   className?: string
