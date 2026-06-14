@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
+import GymladsLogo from './GymladsLogo'
 
 interface OnboardingLayoutProps {
   children: ReactNode
@@ -57,8 +58,7 @@ export default function OnboardingLayout({
           )}
           {showLogo && (
             <div className="onboarding__logo">
-              <span className="onboarding__logo-icon" aria-hidden="true" />
-              GYMLADS
+              <GymladsLogo />
             </div>
           )}
         </header>

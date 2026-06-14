@@ -70,19 +70,16 @@
 .onboarding__logo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  font-style: italic;
-  font-size: 1.1rem;
-  letter-spacing: 0.02em;
+  justify-content: center;
+  width: 100%;
+  padding: 4px 0;
 }
 
-.onboarding__logo-icon {
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 14px solid var(--accent);
+.onboarding__logo-image {
+  height: 36px;
+  width: auto;
+  display: block;
+  object-fit: contain;
 }
 
 .onboarding__progress {
@@ -965,7 +962,14 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 24px;
+  gap: 20px;
+}
+
+.checkout-success__logo {
+  height: 52px;
+  width: auto;
+  display: block;
+  object-fit: contain;
 }
 
 .checkout-success__title {
