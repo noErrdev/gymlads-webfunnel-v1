@@ -6,12 +6,23 @@ import {
 } from './onboarding/CheckoutResult'
 import './index.css'
 
-export default function App() {
-  const checkout = new URLSearchParams(window.location.search).get('checkout')
+function getCheckoutView() {
+  const { pathname, search } = window.location
+  const checkout = new URLSearchParams(search).get('checkout')
 
-  if (checkout === 'success') return <CheckoutSuccess />
-  if (checkout === 'cancelled') return <CheckoutCancelled />
-  if (checkout === 'demo') return <DemoCheckout />
+  if (pathname === '/checkout/success' || checkout === 'success') return 'success'
+  if (pathname === '/checkout/cancelled' || checkout === 'cancelled') return 'cancelled'
+  if (pathname === '/checkout/demo' || checkout === 'demo') return 'demo'
+
+  return null
+}
+
+export default function App() {
+  const view = getCheckoutView()
+
+  if (view === 'success') return <CheckoutSuccess />
+  if (view === 'cancelled') return <CheckoutCancelled />
+  if (view === 'demo') return <DemoCheckout />
 
   return <OnboardingWizard />
 }

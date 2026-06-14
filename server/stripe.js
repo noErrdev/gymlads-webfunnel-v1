@@ -25,10 +25,66 @@ function sanitizeStripeMetadata(metadata) {
   return sanitized
 }
 
-export async function createCheckoutSession(metadata) {
+function normalizeOrigin(value) {
+  if (!value || typeof value !== 'string') return null
+
+  try {
+    const url = new URL(value)
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null
+    return url.origin
+  } catch {
+    return null
+  }
+}
+
+function originFromReferer(referer) {
+  if (!referer || typeof referer !== 'string') return null
+
+  try {
+    return normalizeOrigin(new URL(referer).origin)
+  } catch {
+    return null
+  }
+}
+
+function originFromForwardedHeaders(req) {
+  const host = req?.headers?.['x-forwarded-host']
+  if (!host) return null
+
+  const proto = req.headers['x-forwarded-proto'] || 'https'
+  const primaryHost = String(host).split(',')[0].trim()
+  return normalizeOrigin(`${proto}://${primaryHost}`)
+}
+
+export function resolveClientUrl(req, bodyOrigin) {
+  const candidates = [
+    normalizeOrigin(bodyOrigin),
+    normalizeOrigin(req?.headers?.origin),
+    originFromReferer(req?.headers?.referer),
+    originFromForwardedHeaders(req),
+    normalizeOrigin(process.env.CLIENT_URL),
+  ]
+
+  const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL
+  if (vercelUrl) {
+    candidates.push(normalizeOrigin(`https://${vercelUrl}`))
+  }
+
+  for (const origin of candidates) {
+    if (origin) return origin
+  }
+
+  return 'http://127.0.0.1:5173'
+}
+
+function getClientUrl(req, bodyOrigin) {
+  return resolveClientUrl(req, bodyOrigin)
+}
+
+export async function createCheckoutSession(metadata, req, bodyOrigin) {
   const client = getStripe()
   const stripePriceId = process.env.STRIPE_PRICE_ID
-  const clientUrl = process.env.CLIENT_URL || 'http://127.0.0.1:5173'
+  const clientUrl = getClientUrl(req, bodyOrigin)
   const submissionId = randomUUID()
   const enrichedMetadata = sanitizeStripeMetadata({
     ...metadata,
@@ -44,8 +100,8 @@ export async function createCheckoutSession(metadata) {
   const session = await client.checkout.sessions.create({
     mode: 'subscription',
     line_items: [{ price: stripePriceId, quantity: 1 }],
-    success_url: `${clientUrl}?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${clientUrl}?checkout=cancelled`,
+    success_url: `${clientUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${clientUrl}/checkout/cancelled`,
     subscription_data: {
       trial_period_days: 7,
     },
@@ -55,8 +111,8 @@ export async function createCheckoutSession(metadata) {
   return { url: session.url, submissionId }
 }
 
-export async function getCheckoutRedeemInfo(sessionId) {
-  const clientUrl = (process.env.CLIENT_URL || 'http://127.0.0.1:5173').replace(/\/$/, '')
+export async function getCheckoutRedeemInfo(sessionId, req, bodyOrigin) {
+  const clientUrl = getClientUrl(req, bodyOrigin)
   const redeemBase = (process.env.REDEEM_URL || `${clientUrl}/redeem`).replace(/\/$/, '')
   const client = getStripe()
 

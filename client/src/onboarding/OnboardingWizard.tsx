@@ -128,7 +128,7 @@ export default function OnboardingWizard() {
 
       if (result.demo) {
         storePendingCheckout(data, result.submissionId ?? crypto.randomUUID())
-        window.location.href = '/?checkout=demo'
+        window.location.href = '/checkout/demo'
         return
       }
 

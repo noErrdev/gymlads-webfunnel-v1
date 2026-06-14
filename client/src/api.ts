@@ -27,7 +27,10 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 export async function createCheckoutSession(
   data: OnboardingData,
 ): Promise<CheckoutResponse> {
-  const body = JSON.stringify({ metadata: toStripeMetadata(data) })
+  const body = JSON.stringify({
+    metadata: toStripeMetadata(data),
+    clientOrigin: window.location.origin,
+  })
   const maxAttempts = 2
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {

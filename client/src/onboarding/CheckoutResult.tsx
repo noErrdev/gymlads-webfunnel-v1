@@ -84,7 +84,7 @@ export function DemoCheckout() {
     try {
       const result = await confirmDemoCheckout(email, pending.metadata)
       sessionStorage.removeItem(PENDING_CHECKOUT_KEY)
-      window.location.href = `/?checkout=success&session_id=demo-${result.submissionId}`
+      window.location.href = `/checkout/success?session_id=demo-${result.submissionId}`
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Checkout mislukt')
       setLoading(false)
