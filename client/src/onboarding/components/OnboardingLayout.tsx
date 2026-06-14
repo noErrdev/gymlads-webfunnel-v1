@@ -13,6 +13,7 @@ interface OnboardingLayoutProps {
   alignTop?: boolean
   planReady?: boolean
   paywall?: boolean
+  welcome?: boolean
 }
 
 export default function OnboardingLayout({
@@ -27,6 +28,7 @@ export default function OnboardingLayout({
   alignTop,
   planReady,
   paywall,
+  welcome,
 }: OnboardingLayoutProps) {
   const layoutStyle = pageBg
     ? ({ '--bg': pageBg, background: pageBg } as CSSProperties)
@@ -80,7 +82,9 @@ export default function OnboardingLayout({
           centered ? ' onboarding__content--center' : ''
         }${alignTop ? ' onboarding__content--align-top' : ''}${
           planReady ? ' onboarding__content--plan-ready' : ''
-        }${paywall ? ' onboarding__content--paywall' : ''}`}
+        }${paywall ? ' onboarding__content--paywall' : ''}${
+          welcome ? ' onboarding__content--welcome' : ''
+        }`}
       >
         {children}
       </main>

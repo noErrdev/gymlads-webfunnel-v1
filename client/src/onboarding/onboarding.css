@@ -394,10 +394,16 @@
   background: var(--bg);
 }
 
+.onboarding__content--welcome {
+  justify-content: flex-end;
+  padding-top: 24px;
+  padding-bottom: 12px;
+}
+
 .onboarding__hero--welcome {
   aspect-ratio: auto;
   height: auto;
-  margin: 0 auto 20px;
+  margin: 0 auto 16px;
   width: 100%;
   max-width: 390px;
   border-radius: 0;
@@ -413,17 +419,18 @@
 }
 
 .onboarding__title--welcome {
-  font-size: 1.1rem;
-  font-weight: 400;
-  margin-bottom: 6px;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
 }
 
 .onboarding__welcome-text {
-  font-size: 0.82rem;
+  font-size: 14px;
   font-weight: 400;
+  color: #ffffffb3;
   line-height: 1.45;
   margin-bottom: 0;
-  max-width: 300px;
+  max-width: 320px;
   margin-left: auto;
   margin-right: auto;
 }

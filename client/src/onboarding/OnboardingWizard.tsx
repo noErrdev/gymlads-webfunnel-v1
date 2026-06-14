@@ -156,6 +156,7 @@ export default function OnboardingWizard() {
       return (
         <OnboardingLayout
           centered
+          welcome
           pageBg={STEP_PAGE_BG.welcome}
           footer={<NextButton label="Start onboarding" onClick={() => setStepId('gender')} />}
         >
