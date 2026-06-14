@@ -4,7 +4,6 @@ import type { OnboardingData } from '../types'
 import { toStripeMetadata } from '../types'
 import OnboardingLayout from './components/OnboardingLayout'
 import NextButton from './components/NextButton'
-import GymladsLogo from './components/GymladsLogo'
 import StoreDownloadButtons from './components/StoreDownloadButtons'
 import './onboarding.css'
 
@@ -31,9 +30,8 @@ export function CheckoutSuccess() {
   }, [])
 
   return (
-    <OnboardingLayout centered>
+    <OnboardingLayout centered showLogo>
       <div className="checkout-success">
-        <GymladsLogo className="checkout-success__logo" />
         <h1 className="checkout-success__title">Betaling geslaagd!</h1>
         <p className="checkout-success__subtitle">
           Je hebt nu toegang tot Gymlads — download de app en begin vandaag.
