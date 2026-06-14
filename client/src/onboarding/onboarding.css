@@ -28,8 +28,7 @@
 .onboarding__header {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 10px;
+  justify-content: center;
   padding: 12px 20px 14px;
   padding-top: max(28px, calc(env(safe-area-inset-top) + 16px));
   position: relative;
@@ -39,11 +38,10 @@
 }
 
 .onboarding__back {
-  position: static;
-  left: auto;
-  top: auto;
-  bottom: auto;
-  transform: none;
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -77,8 +75,8 @@
 .onboarding__logo {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  width: auto;
+  justify-content: center;
+  width: 100%;
   flex-shrink: 0;
   padding: 0;
 }
