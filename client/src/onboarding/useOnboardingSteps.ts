@@ -12,6 +12,7 @@ export type StepId =
   | 'experience'
   | 'info-experience'
   | 'info-goals'
+  | 'info-schedule'
   | 'frequency'
   | 'duration'
   | 'muscle-focus'
