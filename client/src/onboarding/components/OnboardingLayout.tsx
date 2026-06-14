@@ -40,8 +40,8 @@ export default function OnboardingLayout({
             <button type="button" className="onboarding__back" onClick={onBack} aria-label="Terug">
               <svg
                 className="onboarding__back-icon"
-                width="20"
-                height="20"
+                width="24"
+                height="24"
                 viewBox="0 0 24 24"
                 fill="none"
                 aria-hidden="true"
@@ -49,7 +49,7 @@ export default function OnboardingLayout({
                 <path
                   d="M15 6L9 12L15 18"
                   stroke="currentColor"
-                  strokeWidth="2"
+                  strokeWidth="2.2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
