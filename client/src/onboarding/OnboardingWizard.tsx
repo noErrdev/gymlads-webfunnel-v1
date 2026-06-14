@@ -41,9 +41,7 @@ import paywallImage from './assets/08-paywall.png'
 const DEFAULT_PAGE_BG = '#000000'
 
 /** Matched to each screen image’s sampled edge/background pixels */
-const STEP_PAGE_BG: Partial<Record<StepId, string>> = {
-  welcome: 'rgb(23, 22, 24)',
-}
+const STEP_PAGE_BG: Partial<Record<StepId, string>> = {}
 
 export default function OnboardingWizard() {
   const [stepId, setStepId] = useState<StepId>('welcome')
@@ -157,7 +155,6 @@ export default function OnboardingWizard() {
         <OnboardingLayout
           centered
           welcome
-          pageBg={STEP_PAGE_BG.welcome}
           footer={<NextButton label="Start onboarding" onClick={() => setStepId('gender')} />}
         >
           <div className="onboarding__hero onboarding__hero--welcome">

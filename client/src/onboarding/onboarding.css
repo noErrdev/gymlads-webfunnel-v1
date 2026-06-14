@@ -166,11 +166,11 @@
 
 .onboarding__goals-chart {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  max-width: 280px;
+  max-width: 336px;
   margin: 0 auto;
-  padding: 14px;
+  padding: 14px 8px;
 }
 
 .onboarding__goals-chart-card {
@@ -410,7 +410,7 @@
   height: auto;
   margin: 0 auto 16px;
   width: 100%;
-  max-width: 390px;
+  max-width: 468px;
   border-radius: 0;
   background: var(--bg);
   overflow: visible;
