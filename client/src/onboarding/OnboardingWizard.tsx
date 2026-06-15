@@ -117,6 +117,7 @@ export default function OnboardingWizard() {
   const hasSelectedTrainingDay = WEEKDAYS.some((d) => data[d.train])
   const hasSelectedGymDay = WEEKDAYS.some((d) => data[d.gym])
   const hasSelectedHomeDay = WEEKDAYS.some((d) => data[d.home])
+  const hasNoHomeEquipment = HOME_EQUIPMENT.every((item) => !data[item.key])
 
   async function handleCheckout() {
     setCheckoutError('')
@@ -615,6 +616,8 @@ export default function OnboardingWizard() {
               </OptionButton>
             ))}
             <OptionButton
+              multi
+              selected={hasNoHomeEquipment}
               onClick={() => {
                 setData((prev) => {
                   const cleared = { ...prev }
