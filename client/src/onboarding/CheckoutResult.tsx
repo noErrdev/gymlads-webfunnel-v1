@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react'
 import { confirmDemoCheckout } from '../api'
 import type { OnboardingData } from '../types'
 import { toStripeMetadata } from '../types'
+import { pushGtmEvent } from '../analytics/gtm'
 import OnboardingLayout from './components/OnboardingLayout'
 import NextButton from './components/NextButton'
 import GymladsLogo from './components/GymladsLogo'
@@ -28,6 +29,12 @@ function readPendingCheckout(): PendingCheckout | null {
 export function CheckoutSuccess() {
   useEffect(() => {
     sessionStorage.removeItem(PENDING_CHECKOUT_KEY)
+
+    const sessionId = new URLSearchParams(window.location.search).get('session_id')
+    pushGtmEvent('checkout_success', {
+      page_path: '/checkout/success',
+      stripe_session_id: sessionId ?? undefined,
+    })
   }, [])
 
   return (
