@@ -711,7 +711,7 @@ export default function OnboardingWizard() {
                 <div className="onboarding__pricing">
                   <p className="onboarding__pricing-title">Probeer 7 dagen gratis</p>
                   <p className="onboarding__pricing-sub">
-                    Daarna €60,00/jaar - jaarlijks opzegbaar
+                    Daarna €69,99/jaar - jaarlijks opzegbaar
                   </p>
                 </div>
               </div>

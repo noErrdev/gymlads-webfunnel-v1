@@ -859,7 +859,7 @@
 
 .onboarding__benefits li::before {
   content: '✓';
-  color: #f5c518;
+  color: #ccff00;
   font-weight: 700;
   flex-shrink: 0;
 }
