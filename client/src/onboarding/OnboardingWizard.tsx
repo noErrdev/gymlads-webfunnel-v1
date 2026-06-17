@@ -22,6 +22,7 @@ import OptionButton from './components/OptionButton'
 import StatRangeField from './components/StatRangeField'
 import GoalsComparisonChart from './components/GoalsComparisonChart'
 import WorkoutsLaurel from './components/WorkoutsLaurel'
+import { trackOnboardingStepView } from '../analytics/gtm'
 import {
   autoAssignLocationDays,
   buildStepList,
@@ -49,7 +50,11 @@ export default function OnboardingWizard() {
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [pressedOption, setPressedOption] = useState<string | null>(null)
 
-  const { progress } = useOnboardingSteps(data, stepId)
+  const { progress, steps, currentIndex } = useOnboardingSteps(data, stepId)
+
+  useEffect(() => {
+    trackOnboardingStepView(stepId, currentIndex, steps.length, progress)
+  }, [stepId])
 
   useEffect(() => {
     setPressedOption(null)
