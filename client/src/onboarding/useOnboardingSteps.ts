@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 import type { OnboardingData } from '../types'
 
 export type StepId =
-  | 'welcome'
   | 'gender'
   | 'stats'
   | 'goal'
@@ -27,7 +26,6 @@ export type StepId =
   | 'paywall'
 
 const BASE_STEPS: StepId[] = [
-  'welcome',
   'gender',
   'stats',
   'goal',
@@ -75,7 +73,7 @@ export function buildStepList(data: OnboardingData): StepId[] {
 }
 
 export function shouldShowProgress(stepId: StepId): boolean {
-  if (stepId === 'welcome' || stepId === 'plan-ready' || stepId === 'paywall') {
+  if (stepId === 'plan-ready' || stepId === 'paywall') {
     return false
   }
 
@@ -87,7 +85,7 @@ export function useOnboardingSteps(data: OnboardingData, currentStepId: StepId) 
 
   const currentIndex = steps.indexOf(currentStepId)
   const progressSteps = steps.filter(
-    (s) => !s.startsWith('info-') && s !== 'welcome' && s !== 'plan-ready' && s !== 'paywall',
+    (s) => !s.startsWith('info-') && s !== 'plan-ready' && s !== 'paywall',
   )
   const progressIndex = progressSteps.indexOf(currentStepId)
 

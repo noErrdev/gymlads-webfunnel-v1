@@ -30,7 +30,6 @@ import {
   useOnboardingSteps,
 } from './useOnboardingSteps'
 import './onboarding.css'
-import welcomeImage from './assets/01-welcome.png'
 import personalizationImage from './assets/02-personalization.png'
 import consistencyImage from './assets/03-consistency.png'
 import experienceImage from './assets/04-experience.png'
@@ -44,7 +43,7 @@ const DEFAULT_PAGE_BG = '#000000'
 const STEP_PAGE_BG: Partial<Record<StepId, string>> = {}
 
 export default function OnboardingWizard() {
-  const [stepId, setStepId] = useState<StepId>('welcome')
+  const [stepId, setStepId] = useState<StepId>('gender')
   const [data, setData] = useState<OnboardingData>(initialOnboardingData)
   const [checkoutError, setCheckoutError] = useState('')
   const [checkoutLoading, setCheckoutLoading] = useState(false)
@@ -146,29 +145,11 @@ export default function OnboardingWizard() {
 
   const layoutProps = {
     progress: showProgress ? progress : undefined,
-    showBack: stepId !== 'welcome' && stepId !== 'paywall',
+    showBack: stepId !== 'gender' && stepId !== 'paywall',
     onBack: navigateBack,
   }
 
   switch (stepId) {
-    case 'welcome':
-      return (
-        <OnboardingLayout
-          centered
-          welcome
-          footer={<NextButton label="Start onboarding" onClick={() => setStepId('gender')} />}
-        >
-          <div className="onboarding__hero onboarding__hero--welcome">
-            <img src={welcomeImage} alt="Gymlads app" />
-          </div>
-          <h1 className="onboarding__title onboarding__title--welcome">Ontvang jouw persoonlijke plan</h1>
-          <p className="onboarding__subtitle onboarding__welcome-text">
-            Beantwoord een aantal vragen zodat wij je kunnen adviseren en een plan kunnen maken
-            dat past bij jouw doelen, levensstijl en trainingsvoorkeuren.
-          </p>
-        </OnboardingLayout>
-      )
-
     case 'gender':
       return (
         <OnboardingLayout {...layoutProps}>
