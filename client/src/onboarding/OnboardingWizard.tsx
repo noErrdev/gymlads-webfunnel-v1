@@ -665,7 +665,7 @@ export default function OnboardingWizard() {
             <>
               {checkoutError && <div className="onboarding__error">{checkoutError}</div>}
               <NextButton
-                label="Start nu"
+                label="Start gratis proefperiode"
                 onClick={handleCheckout}
                 loading={checkoutLoading}
               />

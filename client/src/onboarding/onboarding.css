@@ -820,8 +820,10 @@
 }
 
 .onboarding__content--paywall .onboarding__pricing-title {
-  font-size: 0.9rem;
-  margin: 0 0 1px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 4px;
 }
 
 .onboarding__content--paywall .onboarding__pricing-sub {
