@@ -20,6 +20,7 @@ async function handleCheckoutCompleted(session) {
     session.customer_email ??
     metadata.email ??
     ''
+  const phone = session.customer_details?.phone ?? metadata.phone ?? null
 
   if (!email) {
     throw new Error('Checkout session completed without customer email')
@@ -27,6 +28,7 @@ async function handleCheckoutCompleted(session) {
 
   const payload = buildN8nPayloadFromMetadata(metadata, {
     email,
+    phone,
     subscribedInt: 1,
     stripeCustomerId: typeof session.customer === 'string' ? session.customer : session.customer?.id ?? null,
     stripeSubscriptionId:

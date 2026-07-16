@@ -46,13 +46,14 @@ app.get('/api/health', (_req, res) => {
 app.post('/api/create-checkout-session', async (req, res) => {
   const metadata = req.body?.metadata
   const clientOrigin = req.body?.clientOrigin
+  const skipTrial = req.body?.skipTrial === true
 
   if (!metadata || typeof metadata !== 'object') {
     return res.status(400).json({ error: 'metadata is required' })
   }
 
   try {
-    const result = await createCheckoutSession(metadata, req, clientOrigin)
+    const result = await createCheckoutSession(metadata, req, clientOrigin, { skipTrial })
     return res.json(result)
   } catch (error) {
     console.error('[stripe] Checkout failed:', error)

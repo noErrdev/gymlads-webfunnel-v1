@@ -81,20 +81,28 @@ function getClientUrl(req, bodyOrigin) {
   return resolveClientUrl(req, bodyOrigin)
 }
 
-export async function createCheckoutSession(metadata, req, bodyOrigin) {
+function shouldSkipTrial(metadata, options = {}) {
+  if (options.skipTrial === true) return true
+  const value = metadata?.skipTrial ?? metadata?.skip_trial
+  return value === true || value === 'true' || value === '1'
+}
+
+export async function createCheckoutSession(metadata, req, bodyOrigin, options = {}) {
   const client = getStripe()
   const stripePriceId = process.env.STRIPE_PRICE_ID
   const clientUrl = getClientUrl(req, bodyOrigin)
   const submissionId = randomUUID()
+  const skipTrial = shouldSkipTrial(metadata, options)
   const enrichedMetadata = sanitizeStripeMetadata({
     ...metadata,
     submissionId,
     submittedAt: new Date().toISOString(),
     subscribed_int: '0',
+    skip_trial: skipTrial ? 'true' : 'false',
   })
 
   if (!client || !stripePriceId) {
-    return { demo: true, submissionId }
+    return { demo: true, submissionId, skipTrial }
   }
 
   const session = await client.checkout.sessions.create({
@@ -102,13 +110,14 @@ export async function createCheckoutSession(metadata, req, bodyOrigin) {
     line_items: [{ price: stripePriceId, quantity: 1 }],
     success_url: `${clientUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${clientUrl}/checkout/cancelled`,
-    subscription_data: {
-      trial_period_days: 7,
+    phone_number_collection: {
+      enabled: true,
     },
+    subscription_data: skipTrial ? {} : { trial_period_days: 7 },
     metadata: enrichedMetadata,
   })
 
-  return { url: session.url, submissionId }
+  return { url: session.url, submissionId, skipTrial }
 }
 
 export async function getCheckoutRedeemInfo(sessionId, req, bodyOrigin) {

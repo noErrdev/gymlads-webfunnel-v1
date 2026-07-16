@@ -87,6 +87,7 @@ export function metadataToFields(metadata) {
 export function buildN8nPayload({
   fields,
   email,
+  phone = null,
   subscribedInt = 1,
   submissionId = randomUUID(),
   submittedAt = new Date().toISOString(),
@@ -99,6 +100,7 @@ export function buildN8nPayload({
     submittedAt,
     source: fields.source || 'training-onboarding-form',
     email: email.trim().toLowerCase(),
+    phone: phone ? String(phone).trim() : null,
     subscribed_int: subscribedInt,
     stripe_customer_id: stripeCustomerId,
     stripe_subscription_id: stripeSubscriptionId,
@@ -146,6 +148,7 @@ export function buildN8nPayloadFromMetadata(metadata, extras) {
   return buildN8nPayload({
     fields,
     email: extras.email,
+    phone: extras.phone ?? null,
     subscribedInt: extras.subscribedInt ?? 1,
     submissionId: metadata.submissionId || extras.submissionId,
     submittedAt: metadata.submittedAt || extras.submittedAt,
